@@ -1,10 +1,12 @@
 ---
-
-rclone_version: "1.39"
+# "latest" or e.g. "v1.39" for a specific tag
+rclone_version: latest
 
 # Defaults in case no variables for OS are chosen
 rclone_packages:
   - unzip
+
+rclone_setup_tmp_dir: /tmp/rclone_setup
 
 rclone_executable:
   path: /usr/local/bin/rclone

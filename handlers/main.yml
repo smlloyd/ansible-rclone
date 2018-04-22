@@ -1,0 +1,4 @@
+---
+- name: run mandb
+  shell: mandb
+  become: yes

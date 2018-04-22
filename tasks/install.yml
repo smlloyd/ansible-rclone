@@ -1,0 +1,71 @@
+---
+- name: Get latest github info
+  uri:
+    url: https://api.github.com/repos/ncw/rclone/releases/latest
+    method: GET
+    return_content: yes
+  register: rclone_github_info
+
+- name: Set/modify fact rclone_version
+  set_fact:
+    rclone_version: "{{ (rclone_github_info.content|from_json).tag_name }}"
+  when: rclone_version == 'latest'
+
+- name: Get installed rclone version info
+  shell: "{{ rclone_executable.path }} --version"
+  changed_when: false
+  ignore_errors: true
+  register: rclone_installed_info
+
+- block:
+    - name: Install required packages
+      package:
+        name: '{{ item }}'
+        state: latest
+      with_items: '{{ rclone_packages }}'
+      become: true
+
+    - name: Create tmp setup dir
+      file:
+        path: "{{ rclone_setup_tmp_dir}}"
+        state: directory
+        mode: 0775
+
+    - name: "Download and unzip rclone-{{ rclone_version }}"
+      unarchive:
+        src: https://github.com/ncw/rclone/releases/download/{{ rclone_version }}/rclone-{{ rclone_version }}-linux-amd64.zip
+        dest: "{{ rclone_setup_tmp_dir}}"
+        copy: no
+        creates: '{{ rclone_setup_tmp_dir }}"/rclone-{{ rclone_version }}-linux-amd64'
+
+    - name: "Copy rclone-{{ rclone_version }} binary"
+      copy:
+        src: "{{ rclone_setup_tmp_dir}}/rclone-{{ rclone_version }}-linux-amd64/rclone"
+        dest: "{{ rclone_executable.path }}"
+        mode: 0755
+        owner: "{{ rclone_executable.owner }}"
+        group: "{{ rclone_executable.group }}"
+        remote_src: true
+      become: yes
+
+    - name: Make dir for local manpages
+      file:
+        path: '{{ rclone_man_pages.path }}'
+        state: directory
+        mode: 0775
+        owner: '{{ rclone_man_pages.owner }}'
+        group: '{{ rclone_man_pages.group }}'
+      become: yes
+
+    - name: "Copy rclone-{{ rclone_version }} manpage"
+      copy:
+        src: "{{ rclone_setup_tmp_dir}}/rclone-{{ rclone_version }}-linux-amd64/rclone.1"
+        dest: "{{ rclone_man_pages.path }}/rclone.1"
+        mode: 0644
+        owner: '{{ rclone_man_pages.owner }}'
+        group: '{{ rclone_man_pages.group }}'
+        remote_src: true
+      become: yes
+      notify: run mandb
+
+  when: rclone_version not in rclone_installed_info.stdout_lines[0]
