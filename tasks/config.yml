@@ -1,0 +1,17 @@
+---
+- name: "Create directory {{ config.dest|dirname }}"
+  file:
+    path: "{{ config.dest|dirname}}"
+    state: directory
+    owner: "{{ config.owner }}"
+    group: "{{ config.group }}"
+    recurse: yes
+    mode: 0755
+
+- name: "Manage {{ config.dest }}"
+  template:
+    src: rclone.conf.j2
+    dest: "{{ config.dest }}"
+    owner: "{{ config.owner }}"
+    group: "{{ config.group }}"
+    mode: 0644

@@ -10,3 +10,8 @@
     - vars
 
 - import_tasks: install.yml
+
+- include_tasks: config.yml
+  with_items: "{{ rclone_configs }}"
+  loop_control:
+    loop_var: config

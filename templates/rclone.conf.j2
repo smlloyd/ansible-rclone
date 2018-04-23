@@ -1,0 +1,7 @@
+{% for (remote, options) in config.remotes.iteritems() %}
+[{{ remote }}]
+{% for (key, value) in options.iteritems() %}
+{{ key }} = {{ value }}
+{% endfor %}
+
+{% endfor %}
