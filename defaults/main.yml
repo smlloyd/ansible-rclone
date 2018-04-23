@@ -6,6 +6,9 @@ rclone_version: latest
 rclone_packages:
   - unzip
 
+# Download and install from Github
+rclone_install_from_github: True
+
 rclone_setup_tmp_dir: /tmp/rclone_setup
 
 rclone_executable:

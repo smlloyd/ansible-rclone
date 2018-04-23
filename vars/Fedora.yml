@@ -1,0 +1,8 @@
+---
+rclone_install_from_github: False
+
+rclone_executable:
+  path: /usr/bin/rclone
+
+rclone_packages:
+  - rclone

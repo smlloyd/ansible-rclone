@@ -1,4 +1,10 @@
 ---
+- name: Install packages
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items: '{{ rclone_packages }}'
+
 - name: Get latest github info
   uri:
     url: https://api.github.com/repos/ncw/rclone/releases/latest
@@ -18,13 +24,6 @@
   register: rclone_installed_info
 
 - block:
-    - name: Install required packages
-      package:
-        name: '{{ item }}'
-        state: latest
-      with_items: '{{ rclone_packages }}'
-      become: true
-
     - name: Create tmp setup dir
       file:
         path: "{{ rclone_setup_tmp_dir}}"
@@ -46,7 +45,6 @@
         owner: "{{ rclone_executable.owner }}"
         group: "{{ rclone_executable.group }}"
         remote_src: true
-      become: yes
 
     - name: Make dir for local manpages
       file:
@@ -55,7 +53,6 @@
         mode: 0775
         owner: '{{ rclone_man_pages.owner }}'
         group: '{{ rclone_man_pages.group }}'
-      become: yes
 
     - name: "Copy rclone-{{ rclone_version }} manpage"
       copy:
@@ -65,7 +62,8 @@
         owner: '{{ rclone_man_pages.owner }}'
         group: '{{ rclone_man_pages.group }}'
         remote_src: true
-      become: yes
       notify: run mandb
 
-  when: rclone_version not in rclone_installed_info.stdout_lines[0]
+  when:
+    - rclone_installed_info.failed or (rclone_version not in rclone_installed_info.stdout_lines[0])
+    - rclone_install_from_github == True
