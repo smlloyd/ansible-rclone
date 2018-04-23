@@ -3,6 +3,9 @@
 rclone_version: latest
 
 # Defaults in case no variables for OS are chosen
+rclone_repo_package:
+  - rclone
+
 rclone_packages:
   - unzip
 

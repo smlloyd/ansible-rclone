@@ -1,10 +1,4 @@
 ---
-- name: Install packages
-  package:
-    name: '{{ item }}'
-    state: latest
-  with_items: '{{ rclone_packages }}'
-
 - name: Get latest github info
   uri:
     url: https://api.github.com/repos/ncw/rclone/releases/latest
@@ -23,7 +17,20 @@
   ignore_errors: true
   register: rclone_installed_info
 
+- name: Install rclone from package repo
+  package:
+    name: '{{ rclone_repo_package }}'
+    state: latest
+  when:
+    - rclone_install_from_github == False
+
 - block:
+    - name: Install packages
+      package:
+        name: '{{ item }}'
+        state: latest
+      with_items: '{{ rclone_packages }}'
+
     - name: Create tmp setup dir
       file:
         path: "{{ rclone_setup_tmp_dir}}"
