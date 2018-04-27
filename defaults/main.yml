@@ -23,4 +23,21 @@ rclone_man_pages:
   owner: root
   group: root
 
+# Additional packages for mounting 
+rclone_mount_packages:
+  - fuse
+
+rclone_mount_service: "rclone_mount@"
+  
+# User for mounting remotes with systemd
+rclone_mount_user: rclone
+rclone_mount_group: "{{ rclone_mount_user }}"
+rclone_mount_home: "/var/{{ rclone_mount_user }}"
+
+# base directory for system mounts
+rclone_mount_path: "{{ rclone_mount_home }}"
+rclone_mount_args: >-
+  --allow-non-empty
+  --allow-other
+
 rclone_configs: []

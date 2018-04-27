@@ -1,17 +1,59 @@
 ---
-- name: "Create directory {{ config.dest|dirname }}"
+- name: "Register HOME of {{ config.user }}"
+  shell:
+    cmd: "getent passwd {{ config.user }} | cut -d : -f 6"
+  register: home
+  changed_when: False
+
+- name: "Register uid of {{ config.user }}"
+  command: id -u {{ config.user }}
+  register: uid
+  changed_when: False
+
+- name: "... and set them as facts"
+  set_fact:
+    _home: "{{ home.stdout }}"
+    _uid: "{{ uid.stdout }}"
+    _config_file: "{{ home.stdout }}/.config/rclone/rclone.conf"
+
+- name: "Create directory {{ _config_file|dirname }}"
   file:
-    path: "{{ config.dest|dirname}}"
+    path: "{{ _config_file|dirname }}"
     state: directory
-    owner: "{{ config.owner }}"
+    owner: "{{ config.user }}"
     group: "{{ config.group }}"
     recurse: yes
     mode: 0755
 
-- name: "Manage {{ config.dest }}"
+- name: "Manage {{ _config_file }}"
   template:
     src: rclone.conf.j2
-    dest: "{{ config.dest }}"
-    owner: "{{ config.owner }}"
+    dest: "{{ _config_file }}"
+    owner: "{{ config.user }}"
     group: "{{ config.group }}"
     mode: 0644
+
+- name: Automatic mounting of rclone via systemd
+  systemd:
+    name: "{{ rclone_mount_service }}{{ item }}.service"
+    enabled: True
+    state: restarted
+  when:
+    - config.remotes[item].mount|default(False)
+    - config.user == rclone_mount_user
+  with_items: "{{ config.remotes }}"
+
+- name: Automatic mounting of rclone via systemd --user
+  systemd:
+    name: "{{ rclone_mount_service }}{{ item }}.service"
+    enabled: True
+    user: True
+    state: restarted
+  become: True
+  become_user: "{{ config.user }}"
+  environment:
+    XDG_RUNTIME_DIR: /run/user/{{uid.stdout}}
+  when:
+    - config.remotes[item].mount|default(False)
+    - config.user != rclone_mount_user
+  with_items: "{{ config.remotes }}"

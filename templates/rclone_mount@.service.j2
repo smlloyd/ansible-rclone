@@ -1,0 +1,17 @@
+[Unit]
+Description=rclone FUSE mount for %I
+Documentation=http://rclone.org/docs/
+After=network.target suspend.target
+
+[Service]
+Type=simple
+User={{ rclone_mount_user }}
+Group={{ rclone_mount_group }}
+ExecStartPre=-/usr/bin/mkdir {{ rclone_mount_path }}/%i
+ExecStartPre=-/usr/bin/chown {{ rclone_mount_user }}:{{ rclone_mount_group }} {{ rclone_mount_path }}/%i
+ExecStart={{ rclone_executable.path }} mount {{ rclone_mount_args }} %i: {{ rclone_mount_path }}/%i
+ExecStop=/usr/bin/fusermount -uz {{ rclone_executable.path }}/%i
+ExecStopPost=-/usr/bin/rmdir {{ rclone_mount_path }}/%i
+
+[Install]
+WantedBy=multi-user.target suspend.target

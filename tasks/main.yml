@@ -10,6 +10,7 @@
     - vars
 
 - import_tasks: install.yml
+- import_tasks: mount.yml
 
 - include_tasks: config.yml
   with_items: "{{ rclone_configs }}"

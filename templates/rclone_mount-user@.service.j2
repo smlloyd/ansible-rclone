@@ -1,0 +1,14 @@
+[Unit]
+Description=rclone FUSE mount for %I
+Documentation=http://rclone.org/docs/
+After=network.target suspend.target
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/mkdir ${HOME}/%i
+ExecStart={{ rclone_executable.path }} mount {{ rclone_mount_args }} %i: ${HOME}/%i
+ExecStop=/usr/bin/fusermount -uz {{ rclone_executable.path }}/%i
+ExecStopPost=-/usr/bin/rmdir ${HOME}/%i
+
+[Install]
+WantedBy=default.target suspend.target

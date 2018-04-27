@@ -1,0 +1,46 @@
+---
+- name: Ensure required packages are installed 
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ rclone_mount_packages }}"
+
+- block:
+  - name: Create rclone group
+    group:
+      name: "{{ rclone_mount_group }}"
+      system: yes
+  - name: Create rclone user
+    user:
+      name: "{{ rclone_mount_user }}"
+      group: "{{ rclone_mount_group }}"
+      home: "{{ rclone_mount_home }}"
+      shell: /sbin/nologin
+      comment: rclone user for fuse mounts
+      system: yes
+  - name: Change permissions on rclone homedir
+    file:
+      path: "{{ rclone_mount_home }}"
+      state: directory
+      mode: 0755
+  when:
+    - rclone_mount_user != 'root'
+
+- name: Allow non root users to mount FUSE filesystems
+  lineinfile:
+    path: /etc/fuse.conf
+    regexp: '^#*\s*user_allow_other'
+    line: 'user_allow_other'
+
+- name: Manage rclone systemd unit files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - src: rclone_mount@.service.j2
+      dest: "/etc/systemd/system/{{ rclone_mount_service }}.service"
+    - src: rclone_mount-user@.service.j2
+      dest: "/etc/systemd/user/{{ rclone_mount_service }}.service"
