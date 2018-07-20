@@ -39,5 +39,9 @@ rclone_mount_path: "{{ rclone_mount_home }}"
 rclone_mount_args: >-
   --allow-non-empty
   --allow-other
+  --vfs-cache-mode=writes
+  --cache-writes
+  --cache-db-purge
+  --quiet
 
 rclone_configs: []

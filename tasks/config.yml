@@ -4,11 +4,13 @@
     cmd: "getent passwd {{ config.user }} | cut -d : -f 6"
   register: home
   changed_when: False
+  check_mode: no
 
 - name: "Register uid of {{ config.user }}"
   command: id -u {{ config.user }}
   register: uid
   changed_when: False
+  check_mode: no
 
 - name: "... and set them as facts"
   set_fact:
