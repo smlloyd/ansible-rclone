@@ -43,5 +43,6 @@ rclone_mount_args: >-
   --cache-writes
   --cache-db-purge
   --quiet
+  --cache-tmp-upload-path={{ rclone_mount_home}}/%i-upload
 
 rclone_configs: []
